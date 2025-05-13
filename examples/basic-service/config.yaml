@@ -1,0 +1,48 @@
+# Example Configuration for Japa Gateway
+# This configuration demonstrates proxying to the basic example service
+
+server:
+  port: 8000
+  host: 0.0.0.0
+  timeout: 30000
+
+routes:
+  # Proxy all requests to the example service
+  - path: "/api/*"
+    target: "http://localhost:3000"
+    plugins:
+      # Enable logging for all requests
+      logging:
+        enabled: true
+      
+      # Enable rate limiting
+      rateLimit:
+        enabled: true
+        limit: 100
+        window: 60
+      
+      # Enable CORS for web clients
+      cors:
+        enabled: true
+        origins: ["*"]
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      
+      # Enable circuit breaking for resilience
+      circuitBreaker:
+        enabled: true
+        failureThreshold: 0.5
+        resetTimeout: 10000
+
+plugins:
+  # Global plugin configurations
+  logging:
+    level: "debug"
+    format: "pretty"
+
+telemetry:
+  enabled: true
+  metrics: true
+  tracing: true
+  logging:
+    level: "debug"
+    format: "pretty"
