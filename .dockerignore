@@ -1,0 +1,41 @@
+# Node/Bun files
+node_modules
+bun.lockb
+npm-debug.log
+.npm
+
+# Build artifacts
+dist
+build
+*.tsbuildinfo
+
+# Development files
+.git
+.github
+.gitignore
+.vscode
+.idea
+*.md
+!README.md
+!LICENSE.md
+
+# Test files
+tests
+coverage
+*.test.ts
+*.spec.ts
+
+# Temporary files
+.tmp
+.temp
+*.log
+logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
