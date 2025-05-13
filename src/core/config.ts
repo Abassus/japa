@@ -89,15 +89,28 @@ const DEFAULT_CONFIG: Config = {
 };
 
 /**
- * Resolves environment variables in configuration strings
+ * Resolves environment variables in configuration strings with support for default values
  * 
  * @param obj - The object to process
  * @returns The processed object with environment variables resolved
  */
 function resolveEnvVars(obj: any): any {
   if (typeof obj === 'string') {
-    return obj.replace(/\${([^}]+)}/g, (_, varName) => {
-      return process.env[varName] || '';
+    return obj.replace(/\${([^}]+)}/g, (match, varNameWithDefault) => {
+      // Check if there's a default value specified with the ${VAR:-default} syntax
+      const defaultSeparatorIndex = varNameWithDefault.indexOf(':-');
+      
+      if (defaultSeparatorIndex !== -1) {
+        // Extract variable name and default value
+        const varName = varNameWithDefault.substring(0, defaultSeparatorIndex).trim();
+        const defaultValue = varNameWithDefault.substring(defaultSeparatorIndex + 2).trim();
+        
+        // Return environment variable if it exists, otherwise return the default value
+        return process.env[varName] !== undefined ? process.env[varName] : defaultValue;
+      } else {
+        // No default value specified, use the original behavior
+        return process.env[varNameWithDefault] || '';
+      }
     });
   } else if (Array.isArray(obj)) {
     return obj.map(resolveEnvVars);
@@ -148,17 +161,17 @@ export async function loadConfig(): Promise<Config> {
     // Load config from file
     const fileConfig = await loadConfigFromFile(configPath);
     
-    // Merge with environment variables and defaults
+    // First resolve environment variables in the file config
+    const resolvedFileConfig = resolveEnvVars(fileConfig);
+    
+    // Then merge with defaults
     const mergedConfig = {
       ...DEFAULT_CONFIG,
-      ...fileConfig,
+      ...resolvedFileConfig,
     };
     
-    // Resolve environment variables
-    const resolvedConfig = resolveEnvVars(mergedConfig);
-    
     // Validate configuration
-    const validatedConfig = ConfigSchema.parse(resolvedConfig);
+    const validatedConfig = ConfigSchema.parse(mergedConfig);
     
     return validatedConfig;
   } catch (error) {
