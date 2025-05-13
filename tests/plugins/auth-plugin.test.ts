@@ -46,10 +46,13 @@ mock.module('../../src/plugins/auth/api-key-provider', () => ({
 // Import the auth plugin after mocking dependencies
 import AuthPlugin from '../../src/plugins/auth/auth-plugin';
 
+// Create a non-nullable reference to ensure TypeScript knows it's defined
+const authPlugin = AuthPlugin!;
+
 describe('Authentication Plugin', () => {
   beforeAll(async () => {
     // Initialize the plugin with test configuration
-    await AuthPlugin?.initialize({
+    await authPlugin.initialize({
       plugins: {
         auth: {
           method: AuthMethod.NONE,
@@ -90,7 +93,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin
-      await AuthPlugin.preProxy(context);
+      await authPlugin.preProxy(context);
 
       // Check that user info was added to context
       expect(context.metadata.user).toBeDefined();
@@ -124,7 +127,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin and expect error
-      await expect(AuthPlugin.preProxy(context)).rejects.toThrow();
+      await expect(authPlugin.preProxy(context)).rejects.toThrow();
     });
   });
 
@@ -154,7 +157,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin
-      await AuthPlugin.preProxy(context);
+      await authPlugin.preProxy(context);
 
       // Check that user info was added to context
       expect(context.metadata.user).toBeDefined();
@@ -187,7 +190,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin and expect error
-      await expect(AuthPlugin.preProxy(context)).rejects.toThrow();
+      await expect(authPlugin.preProxy(context)).rejects.toThrow();
     });
   });
 
@@ -213,7 +216,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin
-      await AuthPlugin.preProxy(context);
+      await authPlugin.preProxy(context);
 
       // Check that no user info was added
       expect(context.metadata.user).toBeUndefined();
@@ -236,7 +239,7 @@ describe('Authentication Plugin', () => {
       };
 
       // Execute plugin
-      await AuthPlugin.preProxy(context);
+      await authPlugin.preProxy(context);
 
       // Check that no user info was added
       expect(context.metadata.user).toBeUndefined();

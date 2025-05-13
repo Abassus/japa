@@ -2,29 +2,28 @@
 
 # Server configuration
 server:
-  port: 8000
-  host: 0.0.0.0
-  timeout: 30000
-  trustProxy: true
+  # Use environment variables with defaults using the ${VAR_NAME:-default} syntax
+  port: ${GATEWAY_PORT:-8000}
+  host: ${GATEWAY_HOST:-"0.0.0.0"}
+  timeout: ${GATEWAY_TIMEOUT:-30000}
+  trustProxy: ${GATEWAY_TRUST_PROXY:-false}
 
 # Routes configuration
 routes:
   # Example API route
-  - path: "/api/users"
+  - path: "/api/*"
     methods: ["GET", "POST", "PUT", "DELETE"]
-    target: "http://user-service:3000"
+    target: "${API_SERVICE_URL:-http://api-service:3000}"
     plugins:
-      auth:
-        method: "jwt"
-        jwt:
-          secret: "${JWT_SECRET}"
+      cors:
+        origins: ["example.com", "api.example.com"]
       rateLimit:
         limit: 100
         window: 60
   
   # Example public route
   - path: "/public/*"
-    target: "http://public-service:3000"
+    target: "${PUBLIC_SERVICE_URL:-http://public-service:3000}"
     plugins:
       cors:
         origins: ["*"]
@@ -32,7 +31,7 @@ routes:
   
   # Example admin route with API key auth
   - path: "/admin/*"
-    target: "http://admin-service:3000"
+    target: "${ADMIN_SERVICE_URL:-http://admin-service:3000}"
     plugins:
       auth:
         method: "apiKey"
@@ -46,24 +45,32 @@ routes:
 plugins:
   # Authentication plugin
   auth:
-    method: "none"  # Default: no authentication
+    method: ${AUTH_METHOD:-"none"}  # Default: no authentication
+    # Example JWT configuration with environment variables
+    jwt:
+      secret: ${JWT_SECRET:-""}
+      issuer: ${JWT_ISSUER:-"japa-gateway"}
+      audience: ${JWT_AUDIENCE:-"japa-clients"}
+      expiresIn: ${JWT_EXPIRES_IN:-"1h"}
   
   # Rate limiting plugin
   rateLimit:
-    enabled: true
-    algorithm: "fixed-window"
-    limit: 1000
-    window: 60
-    identifierKey: "ip"
-    headers: true
+    enabled: ${RATE_LIMIT_ENABLED:-true}
+    algorithm: ${RATE_LIMIT_ALGORITHM:-"fixed-window"}
+    limit: ${RATE_LIMIT_MAX:-1000}
+    window: ${RATE_LIMIT_WINDOW:-60}
+    identifierKey: ${RATE_LIMIT_IDENTIFIER:-"ip"}
+    headers: ${RATE_LIMIT_HEADERS:-true}
   
   # CORS plugin
   cors:
-    enabled: true
-    origins: ["*"]
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
-    exposedHeaders: ["Content-Length", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+    enabled: ${CORS_ENABLED:-true}
+    # For arrays, you can use comma-separated values in the environment variable
+    # which will be parsed by the resolveEnvVars function
+    origins: ${CORS_ORIGINS:-["*"]}
+    methods: ${CORS_METHODS:-["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]}
+    allowedHeaders: ${CORS_ALLOWED_HEADERS:-["Content-Type", "Authorization", "X-Requested-With"]}
+    exposedHeaders: ${CORS_EXPOSED_HEADERS:-["Content-Length", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]}
     allowCredentials: false
     maxAge: 86400
     handlePreflight: true
