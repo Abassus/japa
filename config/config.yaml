@@ -1,0 +1,87 @@
+# Japa Gateway Configuration
+
+# Server configuration
+server:
+  port: 8000
+  host: 0.0.0.0
+  timeout: 30000
+  trustProxy: true
+
+# Routes configuration
+routes:
+  # Example API route
+  - path: "/api/users"
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    target: "http://user-service:3000"
+    plugins:
+      auth:
+        method: "jwt"
+        jwt:
+          secret: "${JWT_SECRET}"
+      rateLimit:
+        limit: 100
+        window: 60
+  
+  # Example public route
+  - path: "/public/*"
+    target: "http://public-service:3000"
+    plugins:
+      cors:
+        origins: ["*"]
+        methods: ["GET", "OPTIONS"]
+  
+  # Example admin route with API key auth
+  - path: "/admin/*"
+    target: "http://admin-service:3000"
+    plugins:
+      auth:
+        method: "apiKey"
+        apiKey:
+          keys: ["${ADMIN_API_KEY}"]
+      rateLimit:
+        limit: 50
+        window: 60
+
+# Plugin configurations
+plugins:
+  # Authentication plugin
+  auth:
+    method: "none"  # Default: no authentication
+  
+  # Rate limiting plugin
+  rateLimit:
+    enabled: true
+    algorithm: "fixed-window"
+    limit: 1000
+    window: 60
+    identifierKey: "ip"
+    headers: true
+  
+  # CORS plugin
+  cors:
+    enabled: true
+    origins: ["*"]
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+    exposedHeaders: ["Content-Length", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+    allowCredentials: false
+    maxAge: 86400
+    handlePreflight: true
+  
+  # Circuit breaker plugin
+  circuitBreaker:
+    enabled: true
+    failureThreshold: 0.5  # 50% failure rate
+    successThreshold: 2
+    resetTimeout: 30000
+    windowSize: 10
+    trackByRoute: true
+
+# Telemetry configuration
+telemetry:
+  enabled: true
+  metrics: true
+  tracing: true
+  logging:
+    level: "info"
+    format: "json"
