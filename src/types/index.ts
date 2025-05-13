@@ -4,6 +4,9 @@
  * @module types
  */
 
+// Import advanced routing types
+export * from './advanced-routing';
+
 /**
  * Route configuration from user config
  */
@@ -27,6 +30,31 @@ export interface RouteConfig {
    * Plugin configurations for this route
    */
   plugins?: Record<string, any>;
+  
+  /**
+   * Rule-based routing configuration
+   */
+  rules?: RoutingRule[];
+  
+  /**
+   * Path rewriting configuration
+   */
+  pathRewrite?: PathRewrite;
+  
+  /**
+   * Response filtering configuration
+   */
+  responseFilter?: ResponseFilter;
+  
+  /**
+   * Backend composition configuration
+   */
+  composition?: CompositionConfig;
+  
+  /**
+   * Health check configuration
+   */
+  healthCheck?: HealthCheck;
 }
 
 /**

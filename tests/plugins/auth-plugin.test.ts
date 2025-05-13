@@ -49,7 +49,7 @@ import AuthPlugin from '../../src/plugins/auth/auth-plugin';
 describe('Authentication Plugin', () => {
   beforeAll(async () => {
     // Initialize the plugin with test configuration
-    await AuthPlugin.initialize({
+    await AuthPlugin?.initialize({
       plugins: {
         auth: {
           method: AuthMethod.NONE,
