@@ -65,6 +65,9 @@ export class ProxyEngine {
         body: this.shouldForwardBody(request.method) ? request.body : null,
         signal: controller.signal,
       });
+
+      // Add detailed log before fetch
+      console.log(`[ProxyEngine] Attempting to fetch: ${proxyRequest.method} ${proxyRequest.url}`);
       
       // Send request to target
       const response = await fetch(proxyRequest);
@@ -102,10 +105,21 @@ export class ProxyEngine {
     const originalUrl = new URL(request.url);
     const targetUrl = new URL(targetBase);
     
+    // Add debug logging
+    console.log(`Building target URL: Original URL: ${originalUrl.toString()}, Target base: ${targetBase}`);
+    
     // Preserve path and query parameters
-    targetUrl.pathname = targetUrl.pathname.replace(/\/$/, '') + originalUrl.pathname;
+    // Handle the case where the target URL already has a path
+    if (targetUrl.pathname === '/' || targetUrl.pathname === '') {
+      targetUrl.pathname = originalUrl.pathname;
+    } else {
+      // If the target has a specific path, use it as is
+      targetUrl.pathname = targetUrl.pathname.replace(/\/$/, '');
+    }
+    
     targetUrl.search = originalUrl.search;
     
+    console.log(`Final target URL: ${targetUrl.toString()}`);
     return targetUrl.toString();
   }
   

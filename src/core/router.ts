@@ -6,9 +6,9 @@
  * @module core/router
  */
 
-import { Config } from './config';
+import type { Config } from './config';
 import { logger } from '../plugins/observability/logger';
-import { Route, RouteConfig } from '../types';
+import type { Route, RouteConfig } from '../types';
 
 /**
  * Router class for handling request routing
@@ -44,7 +44,7 @@ export class Router {
     const pathPattern = this.createPathPattern(config.path);
     
     // Create method matcher
-    const methods = config.methods?.map(m => m.toUpperCase()) || ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
+    const methods = config.methods?.map((m: string) => m.toUpperCase()) || ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
     
     return {
       ...config,
@@ -62,10 +62,26 @@ export class Router {
   private createPathPattern(path: string): RegExp {
     // Convert path params to regex pattern
     // e.g. /users/:id -> /users/([^/]+)
-    const regexPath = path
-      .replace(/:[a-zA-Z0-9_]+/g, '([^/]+)')
-      .replace(/\*/g, '.*');
+    let regexPath = path
+      .replace(/:[a-zA-Z0-9_]+/g, '([^/]+)');
     
+    // Handle wildcards properly
+    if (regexPath.endsWith('/*')) {
+      // /api/* should match /api/anything/here
+      regexPath = regexPath.replace(/\/\*$/, '(?:/.*)?');
+    } else if (regexPath.includes('/*')) {
+      // Handle wildcards in the middle of the path
+      regexPath = regexPath.replace(/\/\*/g, '(?:/.*)?');
+    } else {
+      regexPath = regexPath.replace(/\*/g, '.*');
+    }
+    
+    // Make trailing slashes optional
+    if (regexPath.endsWith('/')) {
+      regexPath = regexPath.slice(0, -1) + '/?';
+    }
+    
+    logger.debug(`Created path pattern for ${path}: ${regexPath}`);
     return new RegExp(`^${regexPath}$`);
   }
   
@@ -113,14 +129,14 @@ export class Router {
     
     // Extract param names from route path
     const paramNames = (route.path.match(/:[a-zA-Z0-9_]+/g) || [])
-      .map(param => param.substring(1));
+      .map((param: string) => param.substring(1));
     
     // Extract param values from actual path
     const paramValues = path.match(route.pathPattern)?.slice(1) || [];
     
     // Create params object
     const params: Record<string, string> = {};
-    paramNames.forEach((name, index) => {
+    paramNames.forEach((name: string, index: number) => {
       params[name] = paramValues[index] || '';
     });
     
